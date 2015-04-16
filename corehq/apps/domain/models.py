@@ -7,6 +7,10 @@ from couchdbkit.exceptions import ResourceConflict
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
+from corehq.toggles import PHONE_TIMEZONES_HAVE_BEEN_PROCESSED, \
+    PHONE_TIMEZONES_SHOULD_BE_PROCESSED
+from corehq.util.timezones.conversions import \
+    USE_NEW_TZ_BEHAVIOR_ON_NEW_DOMAINS
 from dimagi.ext.couchdbkit import (
     Document, StringProperty, BooleanProperty, DateTimeProperty, IntegerProperty,
     DocumentSchema, SchemaProperty, DictProperty,
@@ -620,6 +624,11 @@ class Domain(Document, SnapshotMixin):
         return self.case_sharing or reduce(lambda x, y: x or y, [getattr(app, 'case_sharing', False) for app in self.applications()], False)
 
     def save(self, **params):
+        if not self._rev and USE_NEW_TZ_BEHAVIOR_ON_NEW_DOMAINS:
+            PHONE_TIMEZONES_HAVE_BEEN_PROCESSED.set(self.name, True,
+                                                    namespace='domain')
+            PHONE_TIMEZONES_SHOULD_BE_PROCESSED.set(self.name, True,
+                                                    namespace='domain')
         super(Domain, self).save(**params)
         Domain.get_by_name.clear(Domain, self.name)  # clear the domain cache
 

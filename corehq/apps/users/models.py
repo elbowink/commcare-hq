@@ -1754,6 +1754,8 @@ class CommCareUser(CouchUser, SingleMembershipMixin, CommCareMobileContactMixin,
             date_joined=self.date_joined,
             user_data=self.user_data,
             domain=self.domain,
+            full_name=self.full_name,
+            phone_number=self.phone_number,
         )
 
         def get_owner_ids():

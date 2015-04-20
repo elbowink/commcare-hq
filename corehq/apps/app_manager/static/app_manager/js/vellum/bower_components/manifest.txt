@@ -1,4 +1,4 @@
-├── MediaUploader#8146915116
+├── MediaUploader#170f4b63c7
 ├── XMLWriter#ab8760d6e0
 ├── almond#0.2.9 (latest is 0.3.1)
 ├── bootstrap-better-typeahead#26036ce250

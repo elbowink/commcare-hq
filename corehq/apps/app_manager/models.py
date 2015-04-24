@@ -1438,7 +1438,7 @@ class Detail(IndexedSchema):
             column.rename_lang(old_lang, new_lang)
 
 
-class CaseList(IndexedSchema):
+class CaseList(IndexedSchema, NavMenuItemMediaMixin):
 
     label = DictProperty()
     show = BooleanProperty(default=False)

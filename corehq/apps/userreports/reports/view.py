@@ -178,7 +178,7 @@ class ConfigurableReport(JSONResponseMixin, TemplateView):
     def has_datespan(self):
         filters = self.spec.filters
         return any(
-            filter['type'] == 'date' and filter['slug'] == 'datespan'
+            filter['type'] == 'sliding_date'
             for filter in filters
         )
 

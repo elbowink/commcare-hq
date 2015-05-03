@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import logging
 from urllib import urlencode
+from dimagi.utils.dates import DateSpan
 from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.utils import html
@@ -256,7 +257,7 @@ class ReportConfig(CachedCouchDocumentMixin, Document):
 
         raise Exception("Unknown dispatcher: %s" % self.report_type)
 
-    def get_date_range(self):
+    def get_date_range(self, use_dates=False):
         """Duplicated in reports.config.js"""
         date_range = self.date_range
         # allow old report email notifications to represent themselves as a
@@ -296,8 +297,14 @@ class ReportConfig(CachedCouchDocumentMixin, Document):
             logging.error('scheduled report %s is in a bad state (no startdate or enddate)' % self._id)
             return {}
 
-        return {'startdate': start_date.isoformat(),
-                'enddate': end_date.isoformat()}
+        if use_dates:
+            return {
+                'startdate': start_date,
+                'enddate': end_date,
+            }
+        else:
+            return {'startdate': start_date.isoformat(),
+                    'enddate': end_date.isoformat()}
 
     @property
     @memoized
@@ -305,9 +312,22 @@ class ReportConfig(CachedCouchDocumentMixin, Document):
         params = {}
         if self._id != 'dummy':
             params['config_id'] = self._id
+        params.update(self.filters)
         if not self.is_configurable_report:
-            params.update(self.filters)
             params.update(self.get_date_range())
+        else:
+            date_range = self.get_date_range(use_dates=True)
+            startdate = date_range['startdate']
+            enddate = date_range['enddate']
+            params.update({
+                'datespan-start': startdate.isoformat(),
+                'datespan-end': enddate.isoformat(),
+                'datespan': DateSpan(
+                    datetime(*startdate.timetuple()[:6]),
+                    datetime(*enddate.timetuple()[:6])
+                ),
+            })
+
 
         return urlencode(params, True)
 
@@ -413,7 +433,6 @@ class ReportConfig(CachedCouchDocumentMixin, Document):
         request.GET = QueryDict(
             self.query_string
             + '&filterSet=true'
-            + ('&' + urlencode(self.filters, True) if self.is_configurable_report else '')
         )
 
         # Make sure the request gets processed by PRBAC Middleware

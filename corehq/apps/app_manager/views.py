@@ -1046,6 +1046,10 @@ def view_generic(request, domain, app_id=None, module_id=None, form_id=None, is_
                 'menu_refs': app.get_case_list_form_media(module, module_id),
                 'default_file_name': '{}_case_list_form'.format(default_file_name),
             }
+            specific_media['case_list_menu_item'] = {
+                'menu_refs': app.get_case_list_menu_item_media(module, module_id),
+                'default_file_name': '{}_case_list_menu_item'.format(default_file_name),
+            }
         context.update({
             'multimedia': {
                 "references": app.get_references(),
@@ -1504,6 +1508,8 @@ def edit_module_attr(request, domain, app_id, module_id, attr):
         "case_list_form_label": None,
         "case_list_form_media_image": None,
         "case_list_form_media_audio": None,
+        'case_list-menu_item_media_image': None,
+        'case_list-menu_item_media_audio': None,
         "parent_module": None,
         "root_module_id": None,
         "module_filter": None,
@@ -1583,6 +1589,21 @@ def edit_module_attr(request, domain, app_id, module_id, attr):
             request.POST.get('case_list_form_media_audio')
         )
         module.case_list_form.media_audio = val
+
+    if should_edit('case_list-menu_item_media_image'):
+        val = _process_media_attribute(
+            'case_list-menu_item_media_image',
+            resp,
+            request.POST.get('case_list-menu_item_media_image')
+        )
+        module.case_list.media_image = val
+    if should_edit('case_list-menu_item_media_audio'):
+        val = _process_media_attribute(
+            'case_list-menu_item_media_audio',
+            resp,
+            request.POST.get('case_list-menu_item_media_audio')
+        )
+        module.case_list.media_audio = val
 
     for attribute in ("name", "case_label", "referral_label"):
         if should_edit(attribute):
